@@ -5,14 +5,14 @@ Characterization device for a star tracker's lens based on Chanoscopio from Juan
 ## Geometry
 Base class for plane and ray
 
-## Plane and Ray
+### Plane and Ray
 Display planes and ray in 3d. Allow modifications in cartesian and spherical way.
 Base class for Reflection, Point and Intersection
 
-## Chanosat
+### Chanosat
 Special case of Ray with Chanoscopio's common movements.
 
-## Reflection, Point and Intersection
+### Reflection, Point and Intersection
 Objects dependent of the interaction between rays and planes (with updates in cascade).
 
 ### Example:
