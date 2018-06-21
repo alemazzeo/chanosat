@@ -5,19 +5,26 @@ Characterization device for a star tracker's lens based on Chanoscopio from Juan
 ## Geometry
 Base class for plane and ray
 
-### Plane and Ray
+#### Plane and Ray
 Display planes and ray in 3d. Allow modifications in cartesian and spherical way.
 Base class for Reflection, Point and Intersection
 
-### Chanosat
+#### Reflection, Point and Intersection
+Objects dependent of the interaction between rays and planes (with updates in cascade).
+
+# devices.py
+
+#### Chanosat
 Special case of Ray with Chanoscopio's common movements.
 
-### Reflection, Point and Intersection
-Objects dependent of the interaction between rays and planes (with updates in cascade).
+#### Camera
+Not yet
+
 
 ### Example:
 ```
-from geometry import Plane, Ray, Chanosat, Reflection, Intersection
+from devices import Chanosat
+from geometry import Plane, Ray, Reflection, Intersection
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -40,5 +47,3 @@ a = Intersection(r1, p1)
 b = Intersection(r1, p2)
 c = Intersection(r3, p1)
 ```
-
-
