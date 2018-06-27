@@ -165,10 +165,9 @@ class Plane(Geometry):
 
     """
 
-    def __init__(self, direction=[0, 0, 1], point=[0, 0, 0], ax=None,
-                 auto_update=True):
+    def __init__(self, *args, **kwargs):
 
-        super().__init__(direction, point, ax, auto_update)
+        super().__init__(*args, **kwargs)
 
     def calculate_z(self, x, y):
         x = np.asarray(x, dtype=float)
@@ -188,10 +187,9 @@ class Ray(Geometry):
 
     """
 
-    def __init__(self, direction=[0, 0, 1], point=[0, 0, 0], ax=None,
-                 auto_update=True):
+    def __init__(self, *args, **kwargs):
         self._large = 1000
-        super().__init__(direction, point, ax, auto_update)
+        super().__init__(*args, **kwargs)
 
     def plane_collision(self, plane):
         n = np.dot(plane.direction, self.direction)
@@ -223,13 +221,12 @@ class Reflection(Ray):
 
     """
 
-    def __init__(self, ray, plane, ax=None, auto_update=True):
+    def __init__(self, ray, plane, *args, **kwargs):
         self._ray = ray
         self._plane = plane
         r, p = ray.calculate_reflection(plane)
-        if ax is None and ray._ax is not None:
-            ax = ray._ax
-        super().__init__(r, p, ax, auto_update)
+        ax = ray._ax
+        super().__init__(direction=r, point=p, ax=ax, *args, **kwargs)
         ray._cascade.append(self)
         plane._cascade.append(self)
 
@@ -257,10 +254,9 @@ class Point(Ray):
 
     """
 
-    def __init__(self, point=[0, 0, 0], ax=None,
-                 auto_update=True):
+    def __init__(self, point=[0,0,0], *args, **kwargs):
 
-        super().__init__([0, 0, 1], point, ax, auto_update)
+        super().__init__([0, 0, 1], point, *args, **kwargs)
 
     def _update_plot(self):
 
@@ -279,13 +275,12 @@ class Intersection(Point):
 
     """
 
-    def __init__(self, ray, plane, ax=None, auto_update=True):
+    def __init__(self, ray, plane, *args, **kwargs):
         self._ray = ray
         self._plane = plane
         p = ray.plane_collision(self._plane)
-        if ax is None and ray._ax is not None:
-            ax = ray._ax
-        super().__init__(p, ax, auto_update)
+        ax = ray._ax
+        super().__init__(p, ax=ax, **kwargs)
         ray._cascade.append(self)
         plane._cascade.append(self)
 

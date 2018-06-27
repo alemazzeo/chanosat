@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-""" File geometry.py
+""" File devices.py
 
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from geometry import Ray, Plane, Intersection, Reflection
 
 
@@ -14,15 +12,14 @@ class Chanosat(Ray):
 
     """
 
-    def __init__(self, theta=0.0, phi=0.0, shift=0.0,
-                 ax=None, auto_update=True):
+    def __init__(self, theta=0.0, phi=0.0, shift=0.0, *args, **kwargs):
         self._theta = theta
         self._phi = phi
         self._shift = shift
         self._height = 90
         self._radius = 100
         direction, point = self._update_ray()
-        super().__init__(direction, point, ax, auto_update)
+        super().__init__(direction, point, *args, **kwargs)
 
     @property
     def direction(self):
@@ -70,10 +67,9 @@ class Chanosat(Ray):
         self.phi = pos[2]
 
     def _update_ray(self):
-        radius = self.shift
-        theta = self.theta
-        phi = self.phi
-
+        radius = self._shift
+        theta = self._theta
+        phi = self._phi
         x0 = radius * np.cos(np.radians(theta))
         y0 = radius * np.sin(np.radians(theta))
         z0 = self._height
@@ -90,21 +86,26 @@ class Chanosat(Ray):
         super().update()
 
 
-plt.ion()
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.set_xlim(-100, 100)
-ax.set_ylim(-90, 90)
-ax.set_zlim(0, 600)
+if __name__ == "__main__":
 
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    
+    plt.ion()
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.set_xlim(-100, 100)
+    ax.set_ylim(-90, 90)
+    ax.set_zlim(0, 600)
 
-p1, p2 = Plane(ax=ax), Plane(ax=ax)
-p1.z, p2.z = 300, 500
-p1.phi, p2.phi = 45, 45
+    p1, p2 = Plane(ax=ax), Plane(ax=ax)
+    p1.z, p2.z = 200, 400
+    p1.phi, p2.phi = 0, 0
 
-r1 = Chanosat(ax=ax)
+    r1 = Chanosat(ax=ax)
+    r2 = Reflection(r1, p1)
+    a = Intersection(r1, p1)
 
-r2, r3 = Reflection(r1, p1), Reflection(r1, p2)
-a = Intersection(r1, p1)
-b = Intersection(r1, p2)
-c = Intersection(r3, p1)
+    #r2, r3 = Reflection(r1, p1), Reflection(r1, p2)
+    #c = Intersection(r3, p1)
+    #b = Intersection(r1, p2)
