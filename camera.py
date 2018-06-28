@@ -23,14 +23,19 @@ class Camera(object):
 
         self._points = list()
 
-        self._current_x = 0
-        self._current_y = 0
+        self._current_xy = 0, 0
 
         self.last_image = None
+
+        self._homography = None
 
     @property
     def connected(self):
         return self._camera.isOpened()
+
+    @property
+    def current_image(self):
+        return self._camera.read()[1]
 
     def _take_points(self, event, x, y, flags, *args):
 
@@ -39,59 +44,71 @@ class Camera(object):
                 self._points.append((x, y))
 
         if event == cv2.EVENT_MOUSEMOVE:
-            self._current_x = x
-            self._current_y = y
+            self._current_xy = x, y
 
-    def calibrate(self):
-        self._points.clear()
+    def calibrate(self, color=(255, 0, 0), testing=False):
+        self._points = list()
         cv2.namedWindow('Calibrate')
         cv2.setMouseCallback('Calibrate', self._take_points)
 
-        while len(self._points) < 5:
+        while len(self._points) < 4:
             _, image = self._camera.read()
 
             if cv2.waitKey(1) & 0xFF == 27:
-                break
+                cv2.destroyWindow('Calibrate')
+                self._points.clear
+                return False
+
+            cv2.circle(img=image, center=self._current_xy,
+                       radius=5, color=color, thickness=-1)
 
             for i, point in enumerate(self._points):
                 if i > 0:
                     cv2.line(img=image,
                              pt1=self._points[i - 1],
                              pt2=self._points[i],
-                             color=(0, 0, 255), thickness=1)
+                             color=color, thickness=2)
 
                 cv2.circle(img=image, center=(point[0], point[1]),
-                           radius=5, color=(0, 0, 255), thickness=-1)
+                           radius=5, color=color, thickness=-1)
 
             if 0 < len(self._points) < 4:
                 cv2.line(img=image,
                          pt1=self._points[-1],
-                         pt2=(self._current_x, self._current_y),
-                         color=(0, 0, 255), thickness=1)
-            if len(self._points) == 4:
+                         pt2=self._current_xy,
+                         color=color, thickness=2)
+            if len(self._points) == 3:
                 cv2.line(img=image,
-                         pt1=self._points[-1], pt2=self._points[0],
-                         color=(0, 0, 255), thickness=1)
+                         pt1=self._current_xy, pt2=self._points[0],
+                         color=color, thickness=2)
 
             cv2.imshow('Calibrate', image)
 
         cv2.destroyWindow('Calibrate')
+        _, image = self._camera.read()
         self._last_image = image
-        return np.float32(self._points[0:4])
+        self._points = np.float32(self._points[0:4])
+        self._warpPerspective(img=image, testing=testing, save=True)
+        return self._points
 
-    def unwarp(self, img=None, src=None, dst=None, testing=True):
+    def _warpPerspective(self, img=None, src=None, dst=None,
+                         testing=True, save=False):
 
-        if img is None and self._last_image is not None:
-            img = self._last_image
+        if img is None:
+            img = self.current_image
 
-        if src is None and len(self._points) == 4:
-            src = self._points
+        if src is None:
+            if len(self._points) != 4:
+                if self.calibrate() is False:
+                    raise RuntimeError(
+                        'Missing calibration points to unwrap')
+            src = np.float32(self._points)
 
         if dst is None:
             dst = np.float32([(0, 0),
-                              (0, self._height),
+                              (self._widht, 0),
                               (self._widht, self._height),
-                              (self._height, 0)])
+                              (0, self._height)])
 
         h, w = img.shape[:2]
         M = cv2.getPerspectiveTransform(src, dst)
@@ -101,24 +118,27 @@ class Camera(object):
             f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
             f.subplots_adjust(hspace=.2, wspace=.05)
             ax1.imshow(img)
-            x = [src[0][0], src[2][0], src[3][0], src[1][0], src[0][0]]
-            y = [src[0][1], src[2][1], src[3][1], src[1][1], src[0][1]]
-            ax1.plot(x, y, color='red', alpha=0.4, linewidth=3,
+            x_src = [src[:][0]]
+            y_src = [src[:][1]]
+            ax1.plot(x_src, y_src, color='red', alpha=0.4, linewidth=3,
                      solid_capstyle='round', zorder=2)
             ax1.set_ylim([h, 0])
             ax1.set_xlim([0, w])
             ax1.set_title('Original Image', fontsize=30)
-            ax2.imshow(cv2.flip(warped, 1))
+            ax2.imshow(warped)
             ax2.set_title('Unwarped Image', fontsize=30)
             plt.show()
         else:
+            if save:
+                self._homography = M
             return warped, M
 
 
 if __name__ == "__main__":
     c1 = Camera(0)
     if c1.connected:
-        print('Camera 1 connected as c1')
+        print('Camera 1 (internal) connected as c1')
     c2 = Camera(1)
     if c2.connected:
-        print('Camera 1 connected as c2')
+        print('Camera 2 (webcam) connected as c2')
+        c2._warpPerspective()
