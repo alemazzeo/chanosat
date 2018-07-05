@@ -4,7 +4,7 @@
 """
 
 import numpy as np
-from geometry import Ray, Plane, Intersection, Reflection
+from geometry import Ray, Plane, Point, Intersection, Reflection
 
 
 class Chanosat(Ray):
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
-    
+
     plt.ion()
     fig = plt.figure()
     ax = fig.gca(projection='3d')
