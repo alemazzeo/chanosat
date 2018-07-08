@@ -46,6 +46,7 @@ class Geometry(object):
 
     def __init__(self, direction=[0, 0, 1], point=[0, 0, 0], ax=None,
                  auto_update=True):
+        self._plot_params = dict()
         self._visible = True
         self._direction = np.asarray(direction, dtype=float)
         self._point = np.asarray(point, dtype=float)
@@ -226,9 +227,9 @@ class Reflection(Ray):
         self._plane = plane
         r, p = ray.calculate_reflection(plane)
         ax = ray._ax
-        super().__init__(direction=r, point=p, ax=ax, *args, **kwargs)
         ray._cascade.append(self)
         plane._cascade.append(self)
+        super().__init__(direction=r, point=p, ax=ax, *args, **kwargs)
 
     @property
     def direction(self):
@@ -254,8 +255,7 @@ class Point(Ray):
 
     """
 
-    def __init__(self, point=[0,0,0], *args, **kwargs):
-
+    def __init__(self, point=[0, 0, 0], *args, **kwargs):
         super().__init__([0, 0, 1], point, *args, **kwargs)
 
     def _update_plot(self):
@@ -264,24 +264,24 @@ class Point(Ray):
         x0, x1, y0, y1 = self._xy_limits()
         if x0 < x < x1 and y0 < y < y1:
             self._plot, = self._ax.plot([x], [y], [z], alpha=0.8,
-                                        ls=' ', marker='o')
+                                        ls=' ', **self._plot_params)
         else:
             self._plot, = self._ax.plot([x], [y], [z], alpha=0.8,
-                                        ls=' ', marker=' ')
+                                        ls=' ', **self._plot_params)
 
 
-class Intersection(Point):
+class Trace(Point):
     """
 
     """
 
     def __init__(self, ray, plane, *args, **kwargs):
-        self._ray = ray
         self._plane = plane
         p = ray.plane_collision(self._plane)
         ax = ray._ax
         super().__init__(p, ax=ax, **kwargs)
-        ray._cascade.append(self)
+        self._ray = Ray(direction=ray.direction,
+                        point=ray.point)
         plane._cascade.append(self)
 
     @property
@@ -300,3 +300,11 @@ class Intersection(Point):
         p = self._ray.plane_collision(self._plane)
         self._point = p
         super().update()
+
+
+class Intersection(Trace):
+
+    def __init__(self, ray, plane, *args, **kwargs):
+        super().__init__(ray, plane, *args, **kwargs)
+        ray._cascade.append(self)
+        self._ray = ray

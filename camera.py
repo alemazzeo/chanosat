@@ -31,6 +31,8 @@ class Camera(object):
 
         self._dim_x = None
         self._dim_y = None
+        self._x = None
+        self._y = None
         self._src = None
         self._dst = None
         self._homography = None
@@ -39,12 +41,60 @@ class Camera(object):
     def connected(self):
         return self._camera.isOpened()
 
-    def current_image(self):
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    def current_image(self, filtered=[1, 2]):
         for i in range(5):
             self._camera.read()
-        return self._camera.read()[1]
 
-    def set_plane(self, dim_x=1.0, dim_y=1.0, points=None, center=False):
+        image = self._camera.read()[1]
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        for i in range(0, 2):
+            if i in filtered:
+                image[:, :, i] = 0
+
+        return image
+
+    def current_plane(self):
+        image = self.current_image()
+        plane = self._apply_homography(image)
+        return plane
+
+    def plot_current(self, ax=None, calibration=True, **subplots_kwargs):
+        if ax is None:
+            fig, ax = plt.subplots(1, **subplots_kwargs)
+        ax.imshow(self.current_image())
+
+        ax.set_xlim([0, self._width])
+        ax.set_ylim([0, self._height])
+
+        if calibration:
+
+            x_src = [self._src[:][0]]
+            y_src = [self._src[:][1]]
+
+            print(x_src, y_src)
+
+            ax.plot(x_src, y_src, color='red', alpha=0.4, linewidth=3,
+                    solid_capstyle='round', zorder=2)
+
+    def plot_plane(self, ax=None, **subplots_kwargs):
+        if ax is None:
+            fig, ax = plt.subplots(1, **subplots_kwargs)
+
+        x0, x1 = self._dim_x
+        y0, y1 = self._dim_y
+
+        ax.imshow(self.current_plane(), extent=[x0, x1, y1, y0])
+
+    def set_plane(self, dim_x=1.0, dim_y=1.0, points=None, center=True):
 
         if center:
             x0, x1 = - dim_x / 2, dim_x / 2
@@ -55,6 +105,9 @@ class Camera(object):
 
         self._dim_x = [x0, x1]
         self._dim_y = [y0, y1]
+
+        self._x = np.linspace(x0, x1, self._width)
+        self._y = np.linspace(y0, y1, self._height)
 
         if points is None:
             points = self._select_points()
@@ -141,37 +194,28 @@ class Camera(object):
         if img is None:
             img = self.current_image()
 
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img[:, :, 1] = 0
-        img[:, :, 2] = 0
-        warped = self._apply_homography(img)
-
         f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
         f.subplots_adjust(hspace=.2, wspace=.05)
-        ax1.imshow(img)
 
-        x_src = [self._src[:][0]]
-        y_src = [self._src[:][1]]
+        self.plot_current(ax1)
+        self.plot_plane(ax2)
 
         ax1.set_title('Original Image', fontsize=30)
-        ax1.set_xlim([0, self._width])
-        ax1.set_ylim([0, self._height])
-
-        ax1.plot(x_src, y_src, color='red', alpha=0.4, linewidth=3,
-                 solid_capstyle='round', zorder=2)
-
         ax2.set_title('Unwarped Image', fontsize=30)
-
-        x0, x1 = self._dim_x
-        y0, y1 = self._dim_y
-        ax2.imshow(warped, extent=[x0, x1, y1, y0])
         plt.show()
 
 
 if __name__ == "__main__":
-    c1 = Camera(0)
-    if c1.connected:
-        print('Camera 1 (internal) connected as c1')
-    c2 = Camera(1)
-    if c2.connected:
-        print('Camera 2 (webcam) connected as c2')
+    try:
+        c1 = Camera(0)
+        if c1.connected:
+            print('Camera 1 connected as c1')
+    except RuntimeError:
+        print('Camera 1 not available')
+
+    try:
+        c2 = Camera(1)
+        if c2.connected:
+            print('Camera 2 connected as c2')
+    except RuntimeError:
+        print('Camera 2 not available')

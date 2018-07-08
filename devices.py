@@ -4,7 +4,7 @@
 """
 
 import numpy as np
-from geometry import Ray, Plane, Point, Intersection, Reflection
+from geometry import Ray, Plane, Point, Trace, Intersection, Reflection
 
 
 class Chanosat(Ray):
@@ -65,6 +65,17 @@ class Chanosat(Ray):
         self.shift = pos[0]
         self.theta = pos[1]
         self.phi = pos[2]
+
+    def trace(self, plane, points=100, **kwargs):
+        trace_list = list()
+        for key, value in kwargs.items():
+            start = getattr(self, key)
+            if start != value:
+                sweep = np.linspace(start, value, points)
+                for x in sweep:
+                    setattr(self, key, x)
+                    trace_list.append(Trace(self, plane))
+        return trace_list
 
     def _update_ray(self):
         radius = self._shift
