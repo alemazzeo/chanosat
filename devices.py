@@ -18,6 +18,7 @@ class Chanosat(Ray):
         self._shift = shift
         self._height = 90
         self._radius = 100
+        self._trace = Trace(self)
         direction, point = self._update_ray()
         super().__init__(direction, point, *args, **kwargs)
 
@@ -66,17 +67,6 @@ class Chanosat(Ray):
         self.theta = pos[1]
         self.phi = pos[2]
 
-    def trace(self, plane, points=100, **kwargs):
-        trace_list = list()
-        for key, value in kwargs.items():
-            start = getattr(self, key)
-            if start != value:
-                sweep = np.linspace(start, value, points)
-                for x in sweep:
-                    setattr(self, key, x)
-                    trace_list.append(Trace(self, plane))
-        return trace_list
-
     def _update_ray(self):
         radius = self._shift
         theta = self._theta
@@ -95,6 +85,24 @@ class Chanosat(Ray):
         self._direction = direction
         self._point = point
         super().update()
+
+    def add_trace_plane(self, plane):
+        self._trace.add_plane(plane)
+
+    def remove_trace_plane(self, plane):
+        self._trace.remove_plane(plane)
+
+    def make_trace(self, points=100, **kwargs):
+        for key, value in kwargs.items():
+            start = getattr(self, key)
+            if start != value:
+                sweep = np.linspace(start, value, points)
+                for x in sweep:
+                    setattr(self, key, x)
+                    self._trace.add_point()
+
+    def clear_trace(self):
+        self._trace.clear()
 
 
 if __name__ == "__main__":
@@ -117,6 +125,6 @@ if __name__ == "__main__":
     r2 = Reflection(r1, p1)
     a = Intersection(r1, p1)
 
-    #r2, r3 = Reflection(r1, p1), Reflection(r1, p2)
-    #c = Intersection(r3, p1)
-    #b = Intersection(r1, p2)
+    r2, r3 = Reflection(r1, p1), Reflection(r1, p2)
+    c = Intersection(r3, p1)
+    b = Intersection(r1, p2)

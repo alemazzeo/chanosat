@@ -3,9 +3,13 @@
 
 """
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from config import load_config
+
+cfg = load_config('geometry')
 
 
 class Box(object):
@@ -46,7 +50,7 @@ class Geometry(object):
 
     def __init__(self, direction=[0, 0, 1], point=[0, 0, 0], ax=None,
                  auto_update=True):
-        self._plot_params = dict()
+        self._plot_style = dict()
         self._visible = True
         self._direction = np.asarray(direction, dtype=float)
         self._point = np.asarray(point, dtype=float)
@@ -54,8 +58,15 @@ class Geometry(object):
         self._plot = None
         self._auto_update = auto_update
         self._cascade = list()
-        if ax is not None:
-            self._update_plot()
+
+    @property
+    def plot_style(self):
+        return self._plot_style
+
+    @plot_style.setter
+    def plot_style(self, style):
+        self._plot_style.update(style)
+        self.update()
 
     @property
     def point(self):
@@ -167,8 +178,8 @@ class Plane(Geometry):
     """
 
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
+        self.plot_style = cfg.plane_style
 
     def calculate_z(self, x, y):
         x = np.asarray(x, dtype=float)
@@ -180,7 +191,7 @@ class Plane(Geometry):
     def _update_plot(self):
         xx, yy = self._meshgrid()
         z = self.calculate_z(xx, yy)
-        self._plot = self._ax.plot_surface(xx, yy, z, alpha=0.2)
+        self._plot = self._ax.plot_surface(xx, yy, z, **self._plot_style)
 
 
 class Ray(Geometry):
@@ -189,8 +200,9 @@ class Ray(Geometry):
     """
 
     def __init__(self, *args, **kwargs):
-        self._large = 1000
         super().__init__(*args, **kwargs)
+        self._large = 1000
+        self.plot_style = cfg.ray_style
 
     def plane_collision(self, plane):
         n = np.dot(plane.direction, self.direction)
@@ -214,7 +226,7 @@ class Ray(Geometry):
         x = p0[0] + t * n[0]
         y = p0[1] + t * n[1]
         z = p0[2] + t * n[2]
-        self._plot, = self._ax.plot(x, y, z, alpha=0.8)
+        self._plot, = self._ax.plot(x, y, z, **self._plot_style)
 
 
 class Reflection(Ray):
@@ -230,6 +242,7 @@ class Reflection(Ray):
         ray._cascade.append(self)
         plane._cascade.append(self)
         super().__init__(direction=r, point=p, ax=ax, *args, **kwargs)
+        self.plot_style = cfg.reflection_style
 
     @property
     def direction(self):
@@ -257,32 +270,47 @@ class Point(Ray):
 
     def __init__(self, point=[0, 0, 0], *args, **kwargs):
         super().__init__([0, 0, 1], point, *args, **kwargs)
+        self.plot_style = cfg.point_style
 
-    def _update_plot(self):
-
+    def update(self):
         x, y, z = self.point
         x0, x1, y0, y1 = self._xy_limits()
         if x0 < x < x1 and y0 < y < y1:
-            self._plot, = self._ax.plot([x], [y], [z], alpha=0.8,
-                                        ls=' ', **self._plot_params)
+            self._visible = True
         else:
-            self._plot, = self._ax.plot([x], [y], [z], alpha=0.8,
-                                        ls=' ', **self._plot_params)
+            self.visible = False
+        super().update()
+
+    def _update_plot(self):
+        x, y, z = self.point
+        self._plot, = self._ax.plot([x], [y], [z], **self._plot_style)
 
 
-class Trace(Point):
+class Intersection(Point):
     """
 
     """
 
-    def __init__(self, ray, plane, *args, **kwargs):
+    def __init__(self, ray, plane, make_trace=False, *args, **kwargs):
         self._plane = plane
         p = ray.plane_collision(self._plane)
         ax = ray._ax
+
+        if make_trace:
+            self._ray = Ray(direction=ray.direction,
+                            point=ray.point)
+            self._ray.visible = False
+        else:
+            self._ray = ray
+
         super().__init__(p, ax=ax, **kwargs)
-        self._ray = Ray(direction=ray.direction,
-                        point=ray.point)
         plane._cascade.append(self)
+
+        if make_trace:
+            self.plot_style = cfg.trace_style
+        else:
+            ray._cascade.append(self)
+            self.plot_style = cfg.intersection_style
 
     @property
     def direction(self):
@@ -302,9 +330,37 @@ class Trace(Point):
         super().update()
 
 
-class Intersection(Trace):
+class Trace(object):
 
-    def __init__(self, ray, plane, *args, **kwargs):
-        super().__init__(ray, plane, *args, **kwargs)
-        ray._cascade.append(self)
+    def __init__(self, ray, planes=[], default_points=100, **kwargs):
         self._ray = ray
+        self._planes = list(planes)
+        self._default_points = default_points
+        self._trace = list()
+        self._plot_style = cfg.trace_style
+
+    @property
+    def plot_style(self):
+        return self._plot_style
+
+    @plot_style.setter
+    def plot_style(self, style):
+        self._plot_style.update(style)
+        for point in self._trace:
+            point.plot_style = self._plot_style
+
+    def add_plane(self, plane):
+        self._planes.append(plane)
+
+    def remove_plane(self, plane):
+        self._planes.remove(plane)
+
+    def add_point(self):
+        for plane in self._planes:
+            self._trace.append(Intersection(self._ray, plane,
+                                            make_trace=True))
+
+    def clear(self):
+        for point in self._trace:
+            point.visible = False
+        self._trace.clear()

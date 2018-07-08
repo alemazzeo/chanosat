@@ -1,0 +1,33 @@
+# Configuration file
+geometry:
+    ray_style:
+        ls: '-'
+        color: 'r'
+        alpha: 0.8
+        lw: 1.5
+    point_style:
+        ls: ' '
+        color: 'r'
+        marker: 'o'
+        alpha: 0.8
+    trace_style:
+        ls: ' '
+        color: 'b'
+        marker: '.'
+        markersize: 0.8
+        alpha: 0.8
+    plane_style:
+        color: 'b'
+        alpha: 0.2
+    reflection_style:
+        ls: ':'
+        color: 'r'
+        alpha: 0.8
+        lw: 1.5
+    intersection_style:
+        ls: ' '
+        color: 'r'
+        marker: 'o'
+        alpha: 0.8
+devices:
+    height: 10.0
