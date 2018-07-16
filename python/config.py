@@ -6,7 +6,7 @@
 import yaml
 import collections
 
-CONFIG_FILE = './etc/config.yaml'
+CONFIG_FILE = '../etc/config.yaml'
 
 
 def load_config(section):

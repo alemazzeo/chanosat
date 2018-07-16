@@ -9,7 +9,7 @@ SOURCE_C = $(wildcard *.c)
 OBJECTS_C = $(patsubst %.c, $(BIN)%_c.o, $(SOURCE_C))
 
 CFLAGS = -std=gnu99 -Wall -fPIC
-LIBRARY = ../bin/capture.so
+LIBRARY = ../bin/libv4l2py.so
 LDFLAGS = -lm
 
 default: help

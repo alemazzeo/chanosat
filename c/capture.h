@@ -19,7 +19,7 @@
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 struct _buffer {
-    void   *start;
+    void*   start;
     size_t  length;
 };
 
@@ -30,7 +30,7 @@ struct _device {
     char*    dev_name;
     int      width;
     int      height;
-    char*    fourcc;
+    char     fourcc[4];
     Buffer*  buffers;
     int      n_buffers;
 };
@@ -39,11 +39,12 @@ typedef struct _device Device;
 
 static void errno_exit(const char *s);
 static int xioctl(int fh, int request, void *arg);
+fd_set fds;
+struct timeval tv;
 
 int open_device(Device * dev);
 int close_device(Device * dev);
 int print_caps(Device * dev);
-int get_pixelformat(Device * dev);
 int set_pixelformat(Device * dev, int width, int height, char* fourcc);
 int init_mmap(Device * dev);
 int uninit_device(Device * dev);
@@ -51,3 +52,5 @@ int start_capturing(Device *dev);
 int stop_capturing(Device * dev);
 int disconnect_buffer(Device * dev);
 int reconnect_buffer(Device * dev);
+int read_frame(Device * dev, void * dst, int size);
+int wait_for_frame(Device * dev);

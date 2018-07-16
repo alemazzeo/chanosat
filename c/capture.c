@@ -113,20 +113,6 @@ int print_caps(Device * dev)
     return 0;
 }
 
-int get_pixelformat(Device * dev)
-{
-    struct v4l2_format fmt = {0};
-    
-    if (-1 == xioctl(dev->fd, VIDIOC_G_FMT, &fmt))
-	errno_exit("VIDIOC_G_FMT");
-
-    dev->width = fmt.fmt.pix.width;
-    dev->height = fmt.fmt.pix.height;
-    strncpy(dev->fourcc, (char *)&fmt.fmt.pix.pixelformat, 4);
-
-    return 0;
-}
-
 int set_pixelformat(Device * dev, int width, int height, char* fourcc)
 {
     char c1 = fourcc[0];
@@ -145,11 +131,12 @@ int set_pixelformat(Device * dev, int width, int height, char* fourcc)
     if (-1 == xioctl(dev->fd, VIDIOC_S_FMT, &fmt))
     {
 	perror("Setting Pixel Format");
-	get_pixelformat(dev);
 	return 1;
     }
 
-    get_pixelformat(dev);
+    dev->width = width;
+    dev->height = height;
+    strncpy(dev->fourcc, fourcc, 4);
     
     return 0;
 }
@@ -157,10 +144,11 @@ int set_pixelformat(Device * dev, int width, int height, char* fourcc)
 int init_mmap(Device * dev)
 {
     struct v4l2_requestbuffers req;
+    static struct v4l2_buffer buf;
     
     CLEAR(req);
     
-    req.count = 4;
+    req.count = 2;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
     
@@ -179,7 +167,7 @@ int init_mmap(Device * dev)
 		dev->dev_name);
 	exit(EXIT_FAILURE);
     }
-    
+
     dev->buffers = calloc(req.count, sizeof(*(dev->buffers)));
     
     if (!dev->buffers) {
@@ -188,7 +176,6 @@ int init_mmap(Device * dev)
     }
     
     for (dev->n_buffers = 0; dev->n_buffers < req.count; ++dev->n_buffers) {
-	struct v4l2_buffer buf;
 	
 	CLEAR(buf);
 	
@@ -230,9 +217,9 @@ int start_capturing(Device *dev)
 {
     unsigned int i;
     enum v4l2_buf_type type;
+    static struct v4l2_buffer buf;
     
     for (i = 0; i < dev->n_buffers; ++i) {
-	struct v4l2_buffer buf;
 	
 	CLEAR(buf);
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -261,43 +248,66 @@ int stop_capturing(Device * dev)
 
 int disconnect_buffer(Device * dev)
 {
-    struct v4l2_buffer buf;
-
-    CLEAR(buf);
+    static struct v4l2_buffer buf;
     
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
+    for (int i = 0; i < dev->n_buffers; ++i) {
+	
+	CLEAR(buf);
+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buf.memory = V4L2_MEMORY_MMAP;
+	buf.index = i;
     
-    if (-1 == xioctl(dev->fd, VIDIOC_DQBUF, &buf)) {
-	switch (errno) {
-	    case EAGAIN:
-		return 0;
-		
-	    case EIO:
-		/* Could ignore EIO, see spec. */
-		
-		/* fall through */
-		
-	    default:
-		errno_exit("VIDIOC_DQBUF");
+	if (-1 == xioctl(dev->fd, VIDIOC_DQBUF, &buf)) {
+	    switch (errno) {
+		case EAGAIN:
+		    return 1;
+		    
+		case EIO:
+		    /* Could ignore EIO, see spec. */
+		    return 2;
+		    /* fall through */
+		    
+		default:
+		    errno_exit("VIDIOC_DQBUF");
+	    }
 	}
     }
-
+    
     return 0;
 }
 
 int reconnect_buffer(Device * dev)
 {
-    struct v4l2_buffer buf;
 
-    CLEAR(buf);
+    static struct v4l2_buffer buf;
+
+    for (int i = 0; i < dev->n_buffers; ++i) {
+	
+	CLEAR(buf);
+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buf.memory = V4L2_MEMORY_MMAP;
+	buf.index = i;
+	
+	if (-1 == xioctl(dev->fd, VIDIOC_QBUF, &buf))
+	    errno_exit("VIDIOC_QBUF");
+    }
     
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
-    assert(buf.index < dev->n_buffers);
-    
-    if (-1 == xioctl(dev->fd, VIDIOC_QBUF, &buf))
-	errno_exit("VIDIOC_QBUF");
-        
     return 0;
+}
+
+int wait_for_frame(Device * dev)
+{
+
+    int r;
+    
+    FD_ZERO(&fds);
+    FD_SET(dev->fd, &fds);
+    
+    /* Timeout. */
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
+    
+    r = select(dev->fd + 1, &fds, NULL, NULL, &tv);
+    
+    return r;
 }
