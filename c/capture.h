@@ -54,3 +54,5 @@ int disconnect_buffer(Device * dev);
 int reconnect_buffer(Device * dev);
 int read_frame(Device * dev, void * dst, int size);
 int wait_for_frame(Device * dev);
+int setDriverCtrlValue(Device * dev, unsigned int id, int value);
+int getDriverCtrlValue(Device * dev, unsigned int id, int * value);

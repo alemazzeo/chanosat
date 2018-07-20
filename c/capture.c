@@ -311,3 +311,27 @@ int wait_for_frame(Device * dev)
     
     return r;
 }
+
+int setDriverCtrlValue(Device * dev, unsigned int id, int value)
+{
+    struct v4l2_control control;
+    control.id = id;
+    control.value = value;
+
+    if (-1 == xioctl(dev->fd, VIDIOC_S_CTRL, &control))
+	errno_exit("VIDIOC_S_CTROL");
+
+    return 0;  
+}
+
+int getDriverCtrlValue(Device * dev, unsigned int id, int * value)
+{
+    struct v4l2_control control;
+    control.id = id;
+
+    if (-1 == xioctl(dev->fd, VIDIOC_G_CTRL, &control))
+	errno_exit("VIDIOC_G_CTROL");
+
+    *value = control.value;
+    return 0;
+}
