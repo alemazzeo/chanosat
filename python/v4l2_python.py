@@ -5,19 +5,19 @@
 
 # Deponia
 
-import argparse
 import ctypes as C
 import numpy as np
-import cv2
 import v4l2
+import time
+import matplotlib.pyplot as plt
 from subprocess import call
 
-EXPOSURE = v4l2.V4L2_CID_PRIVATE_BASE + 15
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-exposure', type=int, default=1)
-parser.add_argument('-file', type=str, default='image.png')
-
+EXPOSURE = v4l2.V4L2_CID_EXPOSURE
+EXPOSURE_MODE = v4l2.V4L2_CID_PRIVATE_BASE + 15
+EXPOSURE_MODE_OFF = 0
+EXPOSURE_MODE_TIMED = 1
+EXPOSURE_MODE_TRIGGER_WIDTH = 2
+EXPOSURE_MODE_TRIGGER_CONTROLLED = 3
 
 CLIB = C.CDLL('../bin/libv4l2py.so')
 
@@ -39,10 +39,9 @@ class Device(C.Structure):
                 ("buffers", C.POINTER(Buffer)),
                 ("n_buffers", C.c_int)]
 
-    def __init__(self, dev_name, width, height, fourcc,
-                 buffers=4, exposure=None):
-        if exposure is not None:
-            call('v4l2-ctl -d {} -c exposure=100'.dev_name, shell=True)
+    def __init__(self, dev_name='/dev/video1',
+                 width=2448, height=2048, fourcc='Y12 '):
+
         self.dev_name = dev_name.encode('utf-8')
         self._dev = C.pointer(self)
         self._width = width
@@ -50,6 +49,9 @@ class Device(C.Structure):
         self._fourcc = fourcc
         self._out_type = np.uint16
         self._b = 2
+        self._try_max = 5
+        self._timeout = 5
+        self._fig = None
         cw = C.c_int(width)
         ch = C.c_int(height)
         fcc = fourcc.encode('utf-8')
@@ -57,17 +59,31 @@ class Device(C.Structure):
         CLIB.set_pixelformat(self._dev, cw, ch, fcc)
         CLIB.init_mmap(self._dev)
         CLIB.start_capturing(self._dev)
+        self.setDriverCtrlValue(EXPOSURE, 1, captures=0)
+        self.setDriverCtrlValue(EXPOSURE_MODE, 0, captures=0)
+
+    @property
+    def exposure(self):
+        return self.getDriverCtrlValue(EXPOSURE)
+
+    @exposure.setter
+    def exposure(self, value):
+        assert(0 <= value < 4192304)
+        self.setDriverCtrlValue(EXPOSURE, int(value))
 
     def print_caps(self):
         CLIB.print_caps(self._dev)
 
-    def setDriverCtrlValue(self, id_ctrl, value):
+    def setDriverCtrlValue(self, id_ctrl, value, captures=2):
         r = CLIB.setDriverCtrlValue(self._dev,
                                     C.c_uint(id_ctrl),
                                     C.c_int(value))
         if r != 0:
             raise RuntimeWarning("Failed to set driver control value"
                                  "with id {}".format(id_ctrl))
+        for i in range(captures):
+            self.capture()
+            time.sleep(1)
 
     def getDriverCtrlValue(self, id_ctrl):
         c = C.c_int(0)
@@ -78,32 +94,48 @@ class Device(C.Structure):
             raise RuntimeWarning("Failed to get driver control value")
         return c.value
 
-    def capture_raw(self):
+    def capture(self):
 
-        print(CLIB.wait_for_frame(self._dev))
-        CLIB.disconnect_buffer(self._dev)
+        if CLIB.wait_for_frame(self._dev):
+            i = self._try_max - 1
+            time.sleep(self._timeout)
+            while i > 0 and CLIB.wait_for_frame(self._dev):
+                time.sleep(self._timeout)
+                i -= 1
+            raise TimeoutError("Device not respond")
+
+        if CLIB.disconnect_buffer(self._dev):
+            raise RuntimeError("Failed to disconnect buffer")
 
         start = self.buffers[0].start
         buf_type = (self.buffers[0].length // self._b) * C.c_uint8
         raw = np.ctypeslib.as_array(buf_type.from_address(start))
+        raw_cast = np.frombuffer(raw, dtype=self._out_type)
+        raw_copy = np.copy(raw_cast)
 
-        CLIB.reconnect_buffer(self._dev)
-        return np.frombuffer(raw, dtype=self._out_type)
+        if CLIB.reconnect_buffer(self._dev):
+            i = self._try_max - 1
+            time.sleep(self._timeout)
+            while i > 0 and CLIB.reconnect_buffer(self._dev):
+                i -= 1
+                time.sleep(self._timeout)
+            raise TimeoutError("Failed to reconnect buffer")
 
-    def convert(self, raw, cs=None):
-        if cs is None:
-            image = raw.reshape(self._height, self._width)
-        else:
-            image = cv2.cvtColor(raw.reshape(self._height,
-                                             self._width), cs)
-        return image
+        return raw_copy.reshape(self._height, self._width)
 
-    def capture(self, dst='test.png', cvColor=None):
-        c = self.capture_raw()
-        image = self.convert(c, cvColor)
-        cv2.imwrite(dst, image)
+    def save_png(self, dst='test.png'):
+        image = self.capture()
+        plt.imsave('test.png', image, cmap='gray', vmin=0, vmax=2**12)
+
+    def view(self):
+        image = self.capture()
+        plt.imshow(image, cmap='gray', vmin=0, vmax=2**12)
+        plt.title('%d - %d' % (np.min(image), np.max(image)))
 
     def __del__(self):
         CLIB.stop_capturing(self._dev)
         CLIB.uninit_device(self._dev)
         CLIB.close_device(self._dev)
+
+
+plt.ion()

@@ -52,12 +52,7 @@ class FileTools():
         else:
             name = name + '0'
 
-        return path + '/' + name + extension
-
-    @classmethod
-    def lastname(cls, fullname, default='../data/temp.npy'):
-        path, name, extension = cls.splitname(cls.newname(fullname, default))
-        return path + '/' + name[:-1] + str(int(name[-1]) - 1) + extension
+        return os.path.normpath(path + '/' + name + extension)
 
     @classmethod
     def move(cls, files, dest, copy=False, verbose=False):

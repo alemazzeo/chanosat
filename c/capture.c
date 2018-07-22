@@ -289,7 +289,8 @@ int reconnect_buffer(Device * dev)
 	buf.index = i;
 	
 	if (-1 == xioctl(dev->fd, VIDIOC_QBUF, &buf))
-	    errno_exit("VIDIOC_QBUF");
+	    return 1;
+            //errno_exit("VIDIOC_QBUF");
     }
     
     return 0;
@@ -308,8 +309,11 @@ int wait_for_frame(Device * dev)
     tv.tv_usec = 0;
     
     r = select(dev->fd + 1, &fds, NULL, NULL, &tv);
-    
-    return r;
+
+    if (r == 1)
+	return 0;
+    else
+	return 1;
 }
 
 int setDriverCtrlValue(Device * dev, unsigned int id, int value)
