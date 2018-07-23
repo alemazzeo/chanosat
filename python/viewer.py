@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 plt.ion()
-path = '../data/'
-name = 'test{}.npz'
 
 mask = ('Max: {:4d} '
         'Exposure: {:6d} '
@@ -14,9 +12,10 @@ mask = ('Max: {:4d} '
 current = 0
 
 
-def view(i):
+def view(path='../data/', name='test{i}.npz', **kwargs):
+    filename = (path + name).format(**kwargs)
     try:
-        a = np.load((path + name).format(i))
+        a = np.load(filename)
         plt.imshow(a['image'], cmap='gray', vmin=0, vmax=2**12)
         plt.title(mask.format(np.max(a['image']),
                               int(a['exposure']),
@@ -24,16 +23,16 @@ def view(i):
                               a['chanosat_pos'][1],
                               a['chanosat_pos'][2]))
     except FileNotFoundError:
-        print('File {} not found')
+        print('File {} not found'.format(filename))
 
 
 def next():
     global current
     current += 1
-    view(current)
+    view(i=current)
 
 
 def last():
     global current
     current -= 1
-    view(current)
+    view(i=current)

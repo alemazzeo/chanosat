@@ -10,7 +10,7 @@ import numpy as np
 import v4l2
 import time
 import matplotlib.pyplot as plt
-from subprocess import call
+import select
 
 EXPOSURE = v4l2.V4L2_CID_EXPOSURE
 EXPOSURE_MODE = v4l2.V4L2_CID_PRIVATE_BASE + 15
@@ -36,7 +36,7 @@ class Device(C.Structure):
                 ("width", C.c_int),
                 ("height", C.c_int),
                 ("fourcc", C.c_char * 4),
-                ("buffers", C.POINTER(Buffer)),
+                ("buffer", Buffer),
                 ("n_buffers", C.c_int)]
 
     def __init__(self, dev_name='/dev/video1',
@@ -59,8 +59,10 @@ class Device(C.Structure):
         CLIB.set_pixelformat(self._dev, cw, ch, fcc)
         CLIB.init_mmap(self._dev)
         CLIB.start_capturing(self._dev)
-        self.setDriverCtrlValue(EXPOSURE, 1, captures=0)
-        self.setDriverCtrlValue(EXPOSURE_MODE, 0, captures=0)
+        #self.setDriverCtrlValue(EXPOSURE, 1, captures=0)
+        #self.setDriverCtrlValue(EXPOSURE_MODE, 0, captures=0)
+        select.select((self.fd,), (), ())
+        CLIB.disconnect_buffer(self._dev)
 
     @property
     def exposure(self):
@@ -81,9 +83,6 @@ class Device(C.Structure):
         if r != 0:
             raise RuntimeWarning("Failed to set driver control value"
                                  "with id {}".format(id_ctrl))
-        for i in range(captures):
-            self.capture()
-            time.sleep(1)
 
     def getDriverCtrlValue(self, id_ctrl):
         c = C.c_int(0)
@@ -96,30 +95,19 @@ class Device(C.Structure):
 
     def capture(self):
 
-        if CLIB.wait_for_frame(self._dev):
-            i = self._try_max - 1
-            time.sleep(self._timeout)
-            while i > 0 and CLIB.wait_for_frame(self._dev):
-                time.sleep(self._timeout)
-                i -= 1
-            raise TimeoutError("Device not respond")
+        if CLIB.reconnect_buffer(self._dev):
+            raise TimeoutError("Failed to reconnect buffer")
+
+        select.select((self.fd,), (), ())
 
         if CLIB.disconnect_buffer(self._dev):
             raise RuntimeError("Failed to disconnect buffer")
 
-        start = self.buffers[0].start
-        buf_type = (self.buffers[0].length // self._b) * C.c_uint8
+        start = self.buffer.start
+        buf_type = (self.buffer.length // self._b) * C.c_uint8
         raw = np.ctypeslib.as_array(buf_type.from_address(start))
         raw_cast = np.frombuffer(raw, dtype=self._out_type)
         raw_copy = np.copy(raw_cast)
-
-        if CLIB.reconnect_buffer(self._dev):
-            i = self._try_max - 1
-            time.sleep(self._timeout)
-            while i > 0 and CLIB.reconnect_buffer(self._dev):
-                i -= 1
-                time.sleep(self._timeout)
-            raise TimeoutError("Failed to reconnect buffer")
 
         return raw_copy.reshape(self._height, self._width)
 
