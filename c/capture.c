@@ -262,7 +262,7 @@ int reconnect_buffer(Device * dev)
     return 0;
 }
 
-int setDriverCtrlValue(Device * dev, unsigned int id, int value)
+int setDriverCtrlValue(Device * dev, unsigned int id, unsigned long value)
 {
     struct v4l2_control control;
     control.id = id;
@@ -274,7 +274,7 @@ int setDriverCtrlValue(Device * dev, unsigned int id, int value)
     return 0;  
 }
 
-int getDriverCtrlValue(Device * dev, unsigned int id, int * value)
+int getDriverCtrlValue(Device * dev, unsigned int id, unsigned long * value)
 {
     struct v4l2_control control;
     control.id = id;

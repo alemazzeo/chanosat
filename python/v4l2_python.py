@@ -12,6 +12,8 @@ import time
 import matplotlib.pyplot as plt
 import select
 
+plt.style.use('dark_background')
+
 EXPOSURE = v4l2.V4L2_CID_EXPOSURE
 EXPOSURE_MODE = v4l2.V4L2_CID_PRIVATE_BASE + 15
 EXPOSURE_MODE_OFF = 0
@@ -52,6 +54,7 @@ class Device(C.Structure):
         self._try_max = 5
         self._timeout = 5
         self._fig = None
+        self._exposure = 1
         cw = C.c_int(width)
         ch = C.c_int(height)
         fcc = fourcc.encode('utf-8')
@@ -59,8 +62,9 @@ class Device(C.Structure):
         CLIB.set_pixelformat(self._dev, cw, ch, fcc)
         CLIB.init_mmap(self._dev)
         CLIB.start_capturing(self._dev)
-        #self.setDriverCtrlValue(EXPOSURE, 1, captures=0)
-        #self.setDriverCtrlValue(EXPOSURE_MODE, 0, captures=0)
+        self.setDriverCtrlValue(EXPOSURE, 1)
+        self.setDriverCtrlValue(EXPOSURE_MODE, 0)
+
         select.select((self.fd,), (), ())
         CLIB.disconnect_buffer(self._dev)
 
@@ -71,21 +75,22 @@ class Device(C.Structure):
     @exposure.setter
     def exposure(self, value):
         assert(0 <= value < 4192304)
+        self._exposure = value
         self.setDriverCtrlValue(EXPOSURE, int(value))
 
     def print_caps(self):
         CLIB.print_caps(self._dev)
 
-    def setDriverCtrlValue(self, id_ctrl, value, captures=2):
+    def setDriverCtrlValue(self, id_ctrl, value):
         r = CLIB.setDriverCtrlValue(self._dev,
                                     C.c_uint(id_ctrl),
-                                    C.c_int(value))
+                                    C.c_ulong(value))
         if r != 0:
             raise RuntimeWarning("Failed to set driver control value"
                                  "with id {}".format(id_ctrl))
 
     def getDriverCtrlValue(self, id_ctrl):
-        c = C.c_int(0)
+        c = C.c_ulong(0)
         r = CLIB.getDriverCtrlValue(self._dev,
                                     C.c_uint(id_ctrl),
                                     C.byref(c))
@@ -96,7 +101,7 @@ class Device(C.Structure):
     def capture(self):
 
         if CLIB.reconnect_buffer(self._dev):
-            raise TimeoutError("Failed to reconnect buffer")
+            raise RuntimeError("Failed to reconnect buffer")
 
         select.select((self.fd,), (), ())
 
@@ -113,14 +118,20 @@ class Device(C.Structure):
 
     def save_png(self, dst='test.png'):
         image = self.capture()
-        plt.imsave('test.png', image, cmap='gray', vmin=0, vmax=2**12)
+        plt.imsave(dst, image, cmap='gray', vmin=0, vmax=2**12)
 
-    def view(self):
+    def view(self, exposure=None):
+
         image = self.capture()
         plt.imshow(image, cmap='gray', vmin=0, vmax=2**12)
-        plt.title('%d - %d' % (np.min(image), np.max(image)))
+        mask = 'Exposure: {:7d}\nMin: {:4d} - Max: {:4d}'
+
+        plt.title(mask.format(self._exposure,
+                              np.min(image),
+                              np.max(image)))
 
     def __del__(self):
+        self.exposure = 1
         CLIB.stop_capturing(self._dev)
         CLIB.uninit_device(self._dev)
         CLIB.close_device(self._dev)
