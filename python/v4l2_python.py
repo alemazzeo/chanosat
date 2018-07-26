@@ -21,7 +21,19 @@ EXPOSURE_MODE_TIMED = 1
 EXPOSURE_MODE_TRIGGER_WIDTH = 2
 EXPOSURE_MODE_TRIGGER_CONTROLLED = 3
 
-CLIB = C.CDLL('../bin/libv4l2py.so')
+CLIB = C.CDLL('../lib/libv4l2py.so')
+
+
+def map_exposures(dev_name, exposures):
+    clock = np.asarray(exposures, dtype=C.c_ulong)
+    clock_p = clock.ctypes.data_as(C.POINTER(C.c_ulong))
+    times = np.zeros(len(clock), dtype=C.c_float)
+    times_p = times.ctypes.data_as(C.POINTER(C.c_float))
+    dev_name_char = C.c_char_p(dev_name.encode('utf-8'))
+
+    r = CLIB.Clock2Time(dev_name_char, clock_p, times_p, len(clock))
+    print("Clock2Time:", r)
+    return times
 
 
 class Buffer(C.Structure):

@@ -9,8 +9,8 @@ SOURCE_C = $(wildcard *.c)
 OBJECTS_C = $(patsubst %.c, $(BIN)%_c.o, $(SOURCE_C))
 
 CFLAGS = -std=gnu99 -Wall -fPIC
-LIBRARY = ../bin/libv4l2py.so
-LDFLAGS = -lm
+LIBRARY = ../lib/libv4l2py.so
+LDFLAGS = -lm -L/usr/local/lib/sentech/ -lstcam
 
 default: help
 
