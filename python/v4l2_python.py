@@ -11,6 +11,7 @@ import v4l2
 import time
 import matplotlib.pyplot as plt
 import select
+import os
 
 plt.style.use('dark_background')
 
@@ -32,7 +33,6 @@ def map_exposures(dev_name, exposures):
     dev_name_char = C.c_char_p(dev_name.encode('utf-8'))
 
     r = CLIB.Clock2Time(dev_name_char, clock_p, times_p, len(clock))
-    print("Clock2Time:", r)
     return times
 
 
@@ -67,6 +67,7 @@ class Device(C.Structure):
         self._timeout = 5
         self._fig = None
         self._exposure = 1
+        self._save_path = os.path.normpath('./')
         cw = C.c_int(width)
         ch = C.c_int(height)
         fcc = fourcc.encode('utf-8')
@@ -128,9 +129,11 @@ class Device(C.Structure):
 
         return raw_copy.reshape(self._height, self._width)
 
-    def save_png(self, dst='test.png'):
+    def save_png(self, name_base='test'):
+        name = '{}_exp_{}'.format(name_base, self._exposure)
+        filename = os.path.normpath(self._save_path + '/' + name + '.png')
         image = self.capture()
-        plt.imsave(dst, image, cmap='gray', vmin=0, vmax=2**12)
+        plt.imsave(filename, image, cmap='gray', vmin=0, vmax=2**12)
 
     def view(self, exposure=None):
 
