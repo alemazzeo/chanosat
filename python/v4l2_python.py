@@ -10,6 +10,7 @@ import numpy as np
 import v4l2
 import time
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import select
 import os
 
@@ -135,7 +136,7 @@ class Device(C.Structure):
         image = self.capture()
         plt.imsave(filename, image, cmap='gray', vmin=0, vmax=2**12)
 
-    def view(self, exposure=None):
+    def view(self):
 
         image = self.capture()
         plt.imshow(image, cmap='gray', vmin=0, vmax=2**12)
@@ -144,6 +145,20 @@ class Device(C.Structure):
         plt.title(mask.format(self._exposure,
                               np.min(image),
                               np.max(image)))
+
+    def live_view(self):
+        fig = plt.figure()
+        image = self.capture()
+        im_data = plt.imshow(image, animated=True,
+                             cmap='gray', vmin=0, vmax=2**8)
+
+        def update(*args):
+            image = self.capture()
+            im_data.set_array(image)
+
+        animacion = animation.FuncAnimation(fig, update, interval=1)
+        # plt.show()
+        return animacion
 
     def __del__(self):
         self.exposure = 1
