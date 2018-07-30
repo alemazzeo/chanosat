@@ -69,18 +69,61 @@ class Device(C.Structure):
         self._fig = None
         self._exposure = 1
         self._save_path = os.path.normpath('./')
+        self._vmin = 0
+        self._vmax = 2**12
         cw = C.c_int(width)
         ch = C.c_int(height)
         fcc = fourcc.encode('utf-8')
-        CLIB.open_device(self._dev)
-        CLIB.set_pixelformat(self._dev, cw, ch, fcc)
-        CLIB.init_mmap(self._dev)
-        CLIB.start_capturing(self._dev)
-        self.setDriverCtrlValue(EXPOSURE, 1)
-        self.setDriverCtrlValue(EXPOSURE_MODE, 0)
 
+        message = ['Opening...',
+                   'Setting pixel format {}-{}x{}. '.format(fourcc,
+                                                            width,
+                                                            height),
+                   'Memory mapping...',
+                   'Starting capture...',
+                   'Testing device...',
+                   '\nCamera ready to use\n']
+
+        print(message[0], end='')
+        if CLIB.open_device(self._dev):
+            print('Failed\n\n')
+            raise RuntimeError('')
+        else:
+            print('Done')
+
+        print(message[1], end='')
+        if CLIB.set_pixelformat(self._dev, cw, ch, fcc):
+            print('Failed\n\n')
+            raise RuntimeError('')
+        else:
+            print('Done')
+
+        print(message[2], end='')
+        if CLIB.init_mmap(self._dev):
+            print('Failed\n\n')
+            raise RuntimeError('')
+        else:
+            print('Done')
+
+        print(message[3], end='')
+        if CLIB.start_capturing(self._dev):
+            print('Failed\n\n')
+            raise RuntimeError('')
+        else:
+            print('Done')
+
+        self.setDriverCtrlValue(EXPOSURE_MODE, 0)
+        self.setDriverCtrlValue(EXPOSURE, 1)
+
+        print(message[4], end='')
         select.select((self.fd,), (), ())
-        CLIB.disconnect_buffer(self._dev)
+        if CLIB.disconnect_buffer(self._dev):
+            print('Failed\n\n')
+            raise RuntimeError('')
+        else:
+            print('Done')
+
+        print(message[5])
 
     @property
     def exposure(self):
@@ -100,8 +143,8 @@ class Device(C.Structure):
                                     C.c_uint(id_ctrl),
                                     C.c_ulong(value))
         if r != 0:
-            raise RuntimeWarning("Failed to set driver control value"
-                                 "with id {}".format(id_ctrl))
+            print("Failed to set driver control value"
+                  "with id {}".format(id_ctrl))
 
     def getDriverCtrlValue(self, id_ctrl):
         c = C.c_ulong(0)
@@ -109,16 +152,18 @@ class Device(C.Structure):
                                     C.c_uint(id_ctrl),
                                     C.byref(c))
         if r != 0:
-            raise RuntimeWarning("Failed to get driver control value")
+            print("Failed to get driver control value")
         return c.value
 
-    def capture(self):
-
+    def capture(self, print_time=False):
+        start_time = time.time()
         if CLIB.reconnect_buffer(self._dev):
             raise RuntimeError("Failed to reconnect buffer")
 
         select.select((self.fd,), (), ())
-
+        if print_time:
+            end_time = time.time() - start_time
+            print("{:6.3f}s".format(end_time))
         if CLIB.disconnect_buffer(self._dev):
             raise RuntimeError("Failed to disconnect buffer")
 
@@ -134,26 +179,30 @@ class Device(C.Structure):
         name = '{}_exp_{}'.format(name_base, self._exposure)
         filename = os.path.normpath(self._save_path + '/' + name + '.png')
         image = self.capture()
-        plt.imsave(filename, image, cmap='gray', vmin=0, vmax=2**12)
+        plt.imsave(filename, image, cmap='gray',
+                   vmin=self._vmin, vmax=self._vmax)
 
     def view(self):
 
         image = self.capture()
-        plt.imshow(image, cmap='gray', vmin=0, vmax=2**12)
+        plt.imshow(image, cmap='gray', vmin=self._vmin, vmax=self._vmax)
         mask = 'Exposure: {:7d}\nMin: {:4d} - Max: {:4d}'
 
         plt.title(mask.format(self._exposure,
                               np.min(image),
                               np.max(image)))
 
-    def live_view(self):
+    def live_view(self, print_time=False, center_line=True):
         fig = plt.figure()
         image = self.capture()
         im_data = plt.imshow(image, animated=True,
-                             cmap='gray', vmin=0, vmax=2**8)
+                             cmap='gray', vmin=self._vmin, vmax=self._vmax)
+        if center_line:
+            plt.axvline(self._width / 2, alpha=0.5)
+            plt.axhline(self._height / 2, alpha=0.5)
 
         def update(*args):
-            image = self.capture()
+            image = self.capture(print_time=print_time)
             im_data.set_array(image)
 
         animacion = animation.FuncAnimation(fig, update, interval=1)
