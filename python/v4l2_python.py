@@ -25,16 +25,12 @@ EXPOSURE_MODE_TRIGGER_CONTROLLED = 3
 
 CLIB = C.CDLL('../lib/libv4l2py.so')
 
+clock_exposures = [1, 10, 100, 1000, 10000, 100000, 1000000]
+time_exposures = [27.14e-6, 147.9e-6, 1.355e-3,
+                  13.43e-3, 134.2e-3, 1.341, 13.41]
 
-def map_exposures(dev_name, exposures):
-    clock = np.asarray(exposures, dtype=C.c_ulong)
-    clock_p = clock.ctypes.data_as(C.POINTER(C.c_ulong))
-    times = np.zeros(len(clock), dtype=C.c_float)
-    times_p = times.ctypes.data_as(C.POINTER(C.c_float))
-    dev_name_char = C.c_char_p(dev_name.encode('utf-8'))
-
-    r = CLIB.Clock2Time(dev_name_char, clock_p, times_p, len(clock))
-    return times
+exp_clock2time = np.poly1d(np.polyfit(clock_exposures, time_exposures, 1))
+exp_time2clock = np.poly1d(np.polyfit(time_exposures, clock_exposures, 1))
 
 
 class Buffer(C.Structure):
@@ -134,6 +130,16 @@ class Device(C.Structure):
         assert(0 <= value < 4192304)
         self._exposure = value
         self.setDriverCtrlValue(EXPOSURE, int(value))
+
+    @property
+    def exposure_time(self):
+        clock = self.exposure
+        return exp_clock2time(clock)
+
+    @exposure_time.setter
+    def exposure_time(self, value):
+        clock = int(exp_time2clock(value))
+        self.exposure = clock
 
     def print_caps(self):
         CLIB.print_caps(self._dev)
