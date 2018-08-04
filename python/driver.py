@@ -16,7 +16,7 @@ class Chanosat_Driver(Chanosat):
     """
 
     def __init__(self, port='/dev/ttyACM0', *args, **kwargs):
-        self._serial = serial.Serial(port, baudrate=9600, timeout=1)
+        self._serial = serial.Serial(port, baudrate=9600, timeout=5)
         self._shift_motor = 1
         self._theta_motor = 2
         self._phi_motor = 3
@@ -63,8 +63,11 @@ class Chanosat_Driver(Chanosat):
         out = self._serial.readline()
         if out != b'0\r\n':
             print(out)
+        if out == b'':
+            raise TimeoutError('Arduino serial not respond')
 
     def __del__(self):
+        self._pos = [0, 0, 0]
         self._serial.close()
 
 

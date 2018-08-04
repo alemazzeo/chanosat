@@ -27,7 +27,7 @@ class FileTools():
         return path, name, extension
 
     @classmethod
-    def newname(cls, fullname, default='../data/temp.npy'):
+    def newname(cls, fullname, default='../data/temp.npy', pad=4):
         path, name, extension = cls.splitname(fullname)
         dpath, dname, dext = cls.splitname(default)
 
@@ -42,17 +42,18 @@ class FileTools():
         if name == '':
             name = dname
 
-        if os.path.isfile(path + '/' + name + '0' + extension):
+        newname = '{name}{i:0{pad}d}'.format(name=name, i=0, pad=pad)
+        if os.path.isfile(os.path.join(path, newname + extension)):
             i = 0
-            newname = name + str(i)
-            while os.path.isfile(path + '/' + newname + extension):
+            newname = '{name}{i:0{pad}d}'.format(name=name, i=i, pad=pad)
+            while os.path.isfile(os.path.join(path, newname + extension)):
                 i += 1
-                newname = name + str(i)
+                newname = '{name}{i:0{pad}d}'.format(name=name, i=i, pad=pad)
             name = newname
         else:
-            name = name + '0'
+            name = '{name}{i:0{pad}d}'.format(name=name, i=0, pad=pad)
 
-        return os.path.normpath(path + '/' + name + extension)
+        return os.path.join(path, name + extension)
 
     @classmethod
     def move(cls, files, dest, copy=False, verbose=False):
