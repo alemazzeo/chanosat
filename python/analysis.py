@@ -12,8 +12,8 @@ import fnmatch
 plt.style.use('dark_background')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-name', type=str, default='theta_0_{}.npz')
-parser.add_argument('-path', type=str, default='../data/shift_sweep/')
+parser.add_argument('-name', type=str, default='explore_{}.npz')
+parser.add_argument('-path', type=str, default='../data/explore4/')
 
 clock_exposures = [1, 10, 100, 1000, 10000, 100000, 1000000]
 time_exposures = [27.14e-6, 147.9e-6, 1.355e-3,
@@ -23,20 +23,19 @@ exp_clock2time = np.poly1d(np.polyfit(clock_exposures, time_exposures, 1))
 exp_time2clock = np.poly1d(np.polyfit(time_exposures, clock_exposures, 1))
 
 mask = ('{:^67}\n'
-        'Exposure(s): {:.2e}'
-        'Shift: {:6.2f} | '
-        'Theta: {:6.2f} | '
-        'Phi: {:6.2f}')
+        'Exposure({}/{}): {:.6f}s | '
+        'Shift: {:6.2f}° | '
+        'Theta: {:6.2f}° | '
+        'Phi: {:6.2f}°')
 
 
 class Viewer():
-    def __init__(self, name='theta_0_{}.npz', path='../data/shift_sweep/'):
+    def __init__(self, name, path):
 
         self._filename = os.path.join(path, name)
         dir_list = os.listdir(path)
         self._list = fnmatch.filter(dir_list, name.format('*'))
         name_left, name_right = name.format('*').split('*')
-        print(name_left, name_right)
 
         def getint(text):
             num = text[len(name_left):-len(name_right)]
@@ -89,6 +88,8 @@ class Viewer():
         else:
             exposure = exposures[self._exposure]
         title = mask.format(self._filenames[self._current],
+                            self._exposure + 1,
+                            exposures.size,
                             exp_clock2time(exposure),
                             shift,
                             theta,
@@ -103,7 +104,7 @@ class Viewer():
                 self._current -= 1
                 self._update_plot()
         elif event.key == 'right':
-            if self._current < self._n:
+            if self._current < self._n - 1:
                 self._current += 1
                 self._update_plot()
         elif event.key == 'up':
@@ -119,4 +120,5 @@ class Viewer():
 if __name__ == '__main__':
     params = parser.parse_args()
     dataview = Viewer(params.name, params.path)
+    plt.tight_layout()
     plt.show()
