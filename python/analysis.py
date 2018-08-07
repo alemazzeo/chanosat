@@ -22,10 +22,10 @@ time_exposures = [27.14e-6, 147.9e-6, 1.355e-3,
 exp_clock2time = np.poly1d(np.polyfit(clock_exposures, time_exposures, 1))
 exp_time2clock = np.poly1d(np.polyfit(time_exposures, clock_exposures, 1))
 
-mask = ('Exposure: {:6.2f}s '
-        '({:7d})'
-        'Shift: {:6.2f} '
-        'Theta: {:6.2f} '
+mask = ('{:^67}\n'
+        'Exposure(s): {:.2e}'
+        'Shift: {:6.2f} | '
+        'Theta: {:6.2f} | '
         'Phi: {:6.2f}')
 
 
@@ -35,10 +35,11 @@ class Viewer():
         self._filename = os.path.join(path, name)
         dir_list = os.listdir(path)
         self._list = fnmatch.filter(dir_list, name.format('*'))
+        name_left, name_right = name.format('*').split('*')
+        print(name_left, name_right)
 
-        def getint(name):
-            basename = name.partition('.')[0]
-            num = basename.split('_')[-1]
+        def getint(text):
+            num = text[len(name_left):-len(name_right)]
             return int(num)
 
         self._list.sort(key=getint)
@@ -69,10 +70,10 @@ class Viewer():
     def _load(self, i):
         self._current_file = np.load(self._filenames[i])
         images = self._current_file['raw_image']
-        exposures = self._current_file['raw_exps']
+        exposures = np.asarray(self._current_file['raw_exps'])
         shift, theta, phi = self._current_file['raw_pos']
 
-        self._n_exposures = len(exposures)
+        self._n_exposures = exposures.size
 
         info = [exposures, shift, theta, phi]
         return images, info
@@ -80,12 +81,15 @@ class Viewer():
     def _update_plot(self):
         images, info = self._load(self._current)
         exposures, shift, theta, phi = info
-        if len(exposures) <= self._exposure:
-            self._exposure = len(exposures) - 1
+        if exposures.size - 1 <= self._exposure:
+            self._exposure = exposures.size - 1
         self._image_data.set_data(images[self._exposure])
-        exposure = exposures[self._exposure]
-        title = mask.format(exp_clock2time(exposure),
-                            exposure,
+        if exposures.size == 1:
+            exposure = int(exposures)
+        else:
+            exposure = exposures[self._exposure]
+        title = mask.format(self._filenames[self._current],
+                            exp_clock2time(exposure),
                             shift,
                             theta,
                             phi)
@@ -99,7 +103,7 @@ class Viewer():
                 self._current -= 1
                 self._update_plot()
         elif event.key == 'right':
-            if self._current <= self._n:
+            if self._current < self._n:
                 self._current += 1
                 self._update_plot()
         elif event.key == 'up':

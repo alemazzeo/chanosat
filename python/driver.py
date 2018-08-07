@@ -21,7 +21,9 @@ class Chanosat_Driver(Chanosat):
         self._theta_motor = 2
         self._phi_motor = 3
         self._phi_goto_secure = True
-        self._phi_secure = 45
+        self._theta_goto_secure = True
+        self._phi_secure = 10
+        self._theta_secure = 5
         self._theta_step = 360 / 7680
         self._phi_step = 360 / 2048
         self._shift_step = 0.0188
@@ -35,16 +37,20 @@ class Chanosat_Driver(Chanosat):
         shift = self.shift // self._shift_step
         theta = self.theta // self._theta_step
         phi = self.phi // self._phi_step
-        phi_secure = self._phi_secure // self._phi_step
+        phi_secure = (self.phi + self._phi_secure) // self._phi_step
+        theta_secure = (self.theta + self._theta_secure) // self._theta_step
 
         if self._last_shift != self.shift:
             self.move_motor(self._shift_motor, shift)
+
         if self._last_theta != self.theta:
+            if self._theta_goto_secure:
+                self.move_motor(self._theta_motor, theta_secure)
             self.move_motor(self._theta_motor, theta)
+
         if self._last_phi != self.phi:
             if self._phi_goto_secure:
                 self.move_motor(self._phi_motor, phi_secure)
-                time.sleep(1)
             self.move_motor(self._phi_motor, phi)
 
         self._last_shift = self.shift

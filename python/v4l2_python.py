@@ -198,6 +198,15 @@ class Device(C.Structure):
                               np.min(image),
                               np.max(image)))
 
+    def view_hist(self):
+        image = self.capture()
+        plt.hist(image.flatten())
+        mask = 'Exposure: {:7d}\nMin: {:4d} - Max: {:4d}'
+
+        plt.title(mask.format(self._exposure,
+                              np.min(image),
+                              np.max(image)))
+
     def live_view(self, print_time=False, center_line=True):
         fig = plt.figure()
         image = self.capture()
