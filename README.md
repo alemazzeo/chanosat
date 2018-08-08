@@ -1,49 +1,40 @@
 # chanosat
 Characterization device for a star tracker's lens based on Chanoscopio from Juan Bujjamer
 
-# geometry.py
-## Geometry
-Base class for plane and ray
+# Structure of repository
+## Python folder
 
-#### Plane and Ray
-Display planes and ray in 3d. Allow modifications in cartesian and spherical way.
-Base class for Reflection, Point and Intersection
+### v4l2_python.py
+Wrapper (ctypes) for self developed camera's driver (see capture.c).
 
-#### Reflection, Point and Intersection
-Objects dependent of the interaction between rays and planes (with updates in cascade).
+### geometry.py
+Contents base classes geometry, ray, plane, intersecction and others.
+Used by devices.py and driver.py for simulation and real control of Chanosat.
 
-# devices.py
+### devices.py
+Contents Chanosat class. Uses ray from geometry.py and others tools and reconstruct the Chanosat device. Can be used to simulate, but designed as base of driver.
 
-#### Chanosat
-Special case of Ray with Chanoscopio's common movements.
+### driver.py
+Based on Chanosat class from devices.py. Add serial comunication with Arduino to execute real movements
 
-#### Camera
-Not yet
+### measure.py
+Control the measure process and data store. Work with task list, allow to set them from yaml file.
 
+### viewer.py
+Simple viewer for data. Allow to navigate images with arrow keys.
 
-### Example:
-```
-from devices import Chanosat
-from geometry import Plane, Ray, Reflection, Intersection
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+## C folder
 
-plt.ion()
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.set_xlim(-100, 100)
-ax.set_ylim(-90, 90)
-ax.set_zlim(0, 600)
+### capture.c
+Library of functions of Sentech camera. Based on v4l2 protocols.
 
+### map_exposure.c
+Exposure traslate from clock to time.
 
-p1, p2 = Plane(ax=ax), Plane(ax=ax)
-p1.z, p2.z = 300, 500
-p1.phi, p2.phi = 45, 45
+## Etc folder
 
-r1 = Chanosat(ax=ax)
+### measure.yaml
+Configuration file for measures. Allow to load lists of tasks to do.
 
-r2, r3 = Reflection(r1, p1), Reflection(r1, p2)
-a = Intersection(r1, p1)
-b = Intersection(r1, p2)
-c = Intersection(r3, p1)
-```
+### config.yaml
+Some general configuration values.

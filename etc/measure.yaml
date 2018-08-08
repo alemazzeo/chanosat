@@ -134,3 +134,907 @@ explore4:
         start: -10.2
         end: 5.2
         step: 0.5
+
+explore5:
+    - set filename: ../data/explore5/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 0
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore6:
+    - set filename: ../data/explore6/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore7:
+    - set filename: ../data/explore7/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: -10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore8:
+    - set filename: ../data/explore8/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 0
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore9:
+    - set filename: ../data/explore9/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore10:
+    - set filename: ../data/explore10/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: -10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+calibrate2:
+    - set filename: ../data/calibrate2/calibrate2_{}.npz
+    - set exposures: [2, 1000]
+    - move shift: 0
+    - move phi: -5.2
+    
+    - move theta: 0
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: -10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: 10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+
+calibrate3:
+    - set filename: ../data/calibrate2/calibrate3_{}.npz
+    - set exposures: [2, 1000]
+    - move shift: 0
+    - move phi: -5.2
+    
+    - move theta: 0
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: -10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: 10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+
+explore11:
+    - set filename: ../data/explore11/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 0
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore12:
+    - set filename: ../data/explore12/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore13:
+    - set filename: ../data/explore13/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: -10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+calibrate4:
+    - set filename: ../data/calibrate2/calibrate4_{}.npz
+    - set exposures: [2, 1000]
+    - move shift: 0
+    - move phi: -5.2
+    
+    - move theta: 0
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: -10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: 10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+
+explore14:
+    - set filename: ../data/explore14/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 0
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore15:
+    - set filename: ../data/explore15/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore16:
+    - set filename: ../data/explore16/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: -10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+calibrate5:
+    - set filename: ../data/calibrate2/calibrate5_{}.npz
+    - set exposures: [2, 1000]
+    - move shift: 0
+    - move phi: -5.2
+    
+    - move theta: 0
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: -10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: 10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+
+explore17:
+    - set filename: ../data/explore17/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 0
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore18:
+    - set filename: ../data/explore18/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore19:
+    - set filename: ../data/explore19/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: -10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+calibrate6:
+    - set filename: ../data/calibrate2/calibrate6_{}.npz
+    - set exposures: [2, 1000]
+    - move shift: 0
+    - move phi: -5.2
+    
+    - move theta: 0
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: -10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+    - move shift: 0
+
+    - move theta: 10
+    - sweep shift:
+        start: 0
+        end: 10
+        step: 0.1
+
+explore20:
+    - set filename: ../data/explore20/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 0
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore21:
+    - set filename: ../data/explore21/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: 10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
+
+explore22:
+    - set filename: ../data/explore22/explore_{}.npz
+    - set exposures: [10, 100, 1000, 10000]
+    - move shift: 0.8
+    - move phi: -10.2
+    - move theta: -10
+    
+    - move shift: 0.8
+    - sweep phi:
+        start: -10.2
+        end: 2.2
+        step: 0.5
+
+    - move shift: 5.8
+    - sweep phi:
+        start: -8.2
+        end: 0.2
+        step: 0.5
+
+    - move shift: 10.8
+    - sweep phi:
+        start: -6.2
+        end: 3.2
+        step: 0.5
+
+    - move shift: 15.8
+    - sweep phi:
+        start: -3.2
+        end: 5.2
+        step: 0.5
+
+    - move shift: 20.8
+    - sweep phi:
+        start: -1.2
+        end: 8.2
+        step: 0.5
+
+    - move shift: 25.8
+    - sweep phi:
+        start: 1.2
+        end: 10.2
+        step: 0.5
