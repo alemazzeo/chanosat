@@ -4,7 +4,12 @@
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+import sys
+from config import load_config
 from geometry import Ray, Plane, Point, Trace, Intersection, Reflection
+
+cfg = load_config('devices')
 
 
 class Chanosat(Ray):
@@ -12,13 +17,23 @@ class Chanosat(Ray):
 
     """
 
-    def __init__(self, theta=0.0, phi=0.0, shift=0.0, *args, **kwargs):
+    def __init__(self, theta=0.0, phi=0.0, shift=0.0,
+                 xyz=[0, 0, 0], *args, **kwargs):
         self._theta = theta
         self._phi = phi
         self._shift = shift
         self._height = 90
         self._radius = 100
         self._trace = Trace(self)
+
+        self._manual = False
+        self._target = 'phi'
+        self._mpl_keys = list()
+
+        self._x = xyz[0]
+        self._y = xyz[1]
+        self._z = xyz[2]
+
         direction, point = self._update_ray()
         super().__init__(direction, point, *args, **kwargs)
 
@@ -31,13 +46,38 @@ class Chanosat(Ray):
         return self._point
 
     @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    @property
+    def z(self):
+        return self._z
+
+    @x.setter
+    def x(self, x):
+        self._x = x
+
+    @y.setter
+    def y(self, y):
+        self._y = y
+
+    @z.setter
+    def z(self, z):
+        self._z = z
+
+    @property
     def phi(self):
         return self._phi
 
     @phi.setter
     def phi(self, phi):
-        self._phi = phi
-        self.update()
+        if cfg.phi['min'] <= phi <= cfg.phi['max']:
+            self._phi = phi
+            self.update()
 
     @property
     def theta(self):
@@ -45,8 +85,9 @@ class Chanosat(Ray):
 
     @theta.setter
     def theta(self, theta):
-        self._theta = theta
-        self.update()
+        if cfg.theta['min'] <= theta <= cfg.theta['max']:
+            self._theta = theta
+            self.update()
 
     @property
     def shift(self):
@@ -54,8 +95,9 @@ class Chanosat(Ray):
 
     @shift.setter
     def shift(self, shift):
-        self._shift = shift
-        self.update()
+        if cfg.shift['min'] <= shift <= cfg.shift['max']:
+            self._shift = shift
+            self.update()
 
     @property
     def pos(self):
@@ -67,13 +109,23 @@ class Chanosat(Ray):
         self.theta = pos[1]
         self.phi = pos[2]
 
+    @property
+    def manual_controls(self):
+        return self._manual
+
+    @manual_controls.setter
+    def manual_controls(self, enable):
+        if self._manual != enable:
+            self._set_controls(enable)
+
     def _update_ray(self):
         radius = self._shift
         theta = self._theta
         phi = self._phi
-        x0 = radius * np.cos(np.radians(theta))
-        y0 = radius * np.sin(np.radians(theta))
-        z0 = self._height
+        x, y, z = self._x, self._y, self._z
+        x0 = x + radius * np.cos(np.radians(theta))
+        y0 = y + radius * np.sin(np.radians(theta))
+        z0 = z
 
         direction = self._sph2cart(theta, phi)
         point = np.asarray([x0, y0, z0], dtype=float)
@@ -104,6 +156,53 @@ class Chanosat(Ray):
     def clear_trace(self):
         self._trace.clear()
 
+    def _set_controls(self, enable):
+        if self._ax is not None:
+            disconnect = self._ax.figure.canvas.mpl_disconnect
+            connect = self._ax.figure.canvas.mpl_connect
+            manager = self._ax.figure.canvas.manager
+            disconnect(manager.key_press_handler_id)
+        if enable is True:
+            connect('key_release_event', self._on_key)
+            self._manual = True
+        else:
+            disconnect(manager.key_press_handler_id)
+            self._manual = False
+
+    def _on_key(self, event):
+        sys.stdout.flush()
+        if event.key == 's':
+            self._target = 'shift'
+        elif event.key == 'p':
+            self._target = 'phi'
+        elif event.key == 't':
+            self._target = 'theta'
+        elif event.key == 'left':
+            self._move(step='-raw')
+        elif event.key == 'right':
+            self._move(step='+raw')
+        elif event.key == 'up':
+            self._move(step='+fine')
+        elif event.key == 'down':
+            self._move(step='-fine')
+
+    def _move(self, step, target=None):
+        if target is None:
+            target = self._target
+        config = getattr(cfg, target)
+        if isinstance(step, str):
+            if step == '+raw':
+                step = config['raw']
+            if step == '-raw':
+                step = -config['raw']
+            elif step == '+fine':
+                step = config['fine']
+            elif step == '-fine':
+                step = -config['fine']
+
+        setattr(self, target, getattr(self, target) + step)
+        plt.pause(0.0001)
+
 
 if __name__ == "__main__":
 
@@ -128,3 +227,5 @@ if __name__ == "__main__":
     r2, r3 = Reflection(r1, p1), Reflection(r1, p2)
     c = Intersection(r3, p1)
     b = Intersection(r1, p2)
+
+    r1.manual_controls = True

@@ -1,15 +1,15 @@
-.PHONY: default help object executable all clean
+1.PHONY: default help object executable all clean
 CC = gcc
 
 LD = $(CC)
 
-BIN = ../bin/
+BIN = ../../bin/
 
 SOURCE_C = $(wildcard *.c)
 OBJECTS_C = $(patsubst %.c, $(BIN)%_c.o, $(SOURCE_C))
 
 CFLAGS = -std=gnu99 -Wall -fPIC
-LIBRARY = ../lib/libv4l2py.so
+LIBRARY = ../../lib/libgeompy.so
 LDFLAGS = -lm -L/usr/local/lib/sentech/ -lstcam
 
 default: help

@@ -5,6 +5,7 @@
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 from devices import Chanosat
 import serial
 import time
@@ -32,6 +33,22 @@ class Chanosat_Driver(Chanosat):
         self._last_phi = 0
         super().__init__(*args, **kwargs)
 
+    @property
+    def phi_secure(self):
+        return self._phi_secure
+
+    @phi_secure.setter
+    def phi_secure(self, value):
+        self._phi_secure = value
+
+    @property
+    def theta_secure(self):
+        return self._theta_secure
+
+    @theta_secure.setter
+    def theta_secure(self, value):
+        self._theta_secure = value
+
     def update(self):
         super().update()
         shift = self.shift // self._shift_step
@@ -44,12 +61,12 @@ class Chanosat_Driver(Chanosat):
             self.move_motor(self._shift_motor, shift)
 
         if self._last_theta != self.theta:
-            if self._theta_goto_secure:
+            if self._theta_secure != 0 and not self._manual:
                 self.move_motor(self._theta_motor, theta_secure)
             self.move_motor(self._theta_motor, theta)
 
         if self._last_phi != self.phi:
-            if self._phi_goto_secure:
+            if self._phi_secure != 0 and not self._manual:
                 self.move_motor(self._phi_motor, phi_secure)
             self.move_motor(self._phi_motor, phi)
 
@@ -86,14 +103,15 @@ if __name__ == "__main__":
     plt.ion()
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.set_xlim(-100, 100)
-    ax.set_ylim(-90, 90)
-    ax.set_zlim(0, 600)
+    ax.set_xlim(-30, 30)
+    ax.set_ylim(-30, 30)
+    ax.set_zlim(0, 100)
 
-    p1, p2 = Plane(ax=ax), Plane(ax=ax)
-    p1.z, p2.z = 200, 400
-    p1.phi, p2.phi = 0, 0
+    p1 = Plane(ax=ax)
+    p1.z = 20
+    p1.phi = 0
 
     c = Chanosat_Driver(ax=ax)
-    r1 = Reflection(c, p1)
     a = Intersection(c, p1)
+
+    c.manual_controls = True

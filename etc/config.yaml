@@ -31,3 +31,21 @@ geometry:
         alpha: 0.8
 devices:
     height: 10.0
+    phi:
+        default: 0.0
+        min: -90.0
+        max: +90.0
+        raw: 2.0
+        fine: 0.25
+    theta:
+        default: 0.0
+        min: -90.0
+        max: +90.0
+        raw: 2.0
+        fine: 0.5
+    shift:
+        default: 0.0
+        min: -100.0
+        max: 100.0
+        raw: 1.0
+        fine: 0.01

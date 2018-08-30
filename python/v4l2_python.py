@@ -67,6 +67,7 @@ class Device(C.Structure):
         self._save_path = os.path.normpath('./')
         self._vmin = 0
         self._vmax = 2**12
+        self._background = list()
         cw = C.c_int(width)
         ch = C.c_int(height)
         fcc = fourcc.encode('utf-8')
@@ -223,6 +224,18 @@ class Device(C.Structure):
         animacion = animation.FuncAnimation(fig, update, interval=1)
         # plt.show()
         return animacion
+
+    def set_background(self, exposures):
+        input("\nTurn OFF laser and press enter")
+        self._background.clear()
+        current_exp = self.exposure
+        for exp in exposures:
+            self.exposure = exp
+            self.capture()
+            self._background.append(self.capture())
+
+        self.exposure = current_exp
+        input("Turn ON laser and press enter")
 
     def __del__(self):
         self.exposure = 1

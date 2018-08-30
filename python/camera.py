@@ -56,7 +56,7 @@ class Camera(object):
         image = self._camera.read()[1]
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        for i in range(0, 2):
+        for i in range(3):
             if i in filtered:
                 image[:, :, i] = 0
 

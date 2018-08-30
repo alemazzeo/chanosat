@@ -207,7 +207,7 @@ class Ray(Geometry):
     def plane_collision(self, plane):
         n = np.dot(plane.direction, self.direction)
         if abs(n) < 1e-6:
-            raise RuntimeError('No intersection or line is within plane')
+            return None
         w = self.point - plane.point
         s = -np.dot(plane.direction, w) / n
         return self.direction * s + self.point
@@ -217,7 +217,10 @@ class Ray(Geometry):
         n = plane.direction
         r = d - (2 * np.dot(d, n) * n) / np.dot(n, n)
         p = self.plane_collision(plane)
-        return r, p
+        if p is None:
+            return None
+        else:
+            return r, p
 
     def _update_plot(self):
         n = self.direction
@@ -273,12 +276,13 @@ class Point(Ray):
         self.plot_style = cfg.point_style
 
     def update(self):
-        x, y, z = self.point
-        x0, x1, y0, y1 = self._xy_limits()
-        if x0 < x < x1 and y0 < y < y1:
-            self._visible = True
-        else:
-            self.visible = False
+        if self._ax is not None:
+            x, y, z = self.point
+            x0, x1, y0, y1 = self._xy_limits()
+            if x0 < x < x1 and y0 < y < y1:
+                self._visible = True
+            else:
+                self.visible = False
         super().update()
 
     def _update_plot(self):
@@ -304,6 +308,7 @@ class Intersection(Point):
             self._ray = ray
 
         super().__init__(p, ax=ax, **kwargs)
+        self._direction = ray.direction
         plane._cascade.append(self)
 
         if make_trace:
