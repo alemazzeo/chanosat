@@ -15,8 +15,8 @@ from hdr import hdr_builder
 plt.style.use('dark_background')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-name', type=str, default='explore_{}.npz')
-parser.add_argument('-path', type=str, default='../data/explore4/')
+parser.add_argument('-name', type=str, default='*_tps.npz')
+parser.add_argument('-path', type=str, default='./calibrate_planes2/')
 parser.add_argument('-start', type=int, default=0)
 
 clock_exposures = [1, 10, 100, 1000, 10000, 100000, 1000000]
@@ -43,18 +43,12 @@ mask = ('{:^67}\n'
 class Viewer():
     def __init__(self, name, path, start=0):
 
-        self._filename = os.path.join(path, name)
         dir_list = os.listdir(path)
-        self._list = fnmatch.filter(dir_list, name.format('*'))
-        name_left, name_right = name.format('*').split('*')
+        self._list = fnmatch.filter(dir_list, name)
 
-        def getint(text):
-            num = text[len(name_left):-len(name_right)]
-            return int(num)
-
-        self._list.sort(key=getint)
         self._filenames = [os.path.join(path, name)
                            for name in self._list]
+        self._filenames.sort(key=lambda x: os.path.getmtime(x))
         self._n = len(self._list)
         self._n_exposures = None
 
@@ -105,9 +99,9 @@ class Viewer():
 
     def load(self, i):
         self._current_file = np.load(self._filenames[i])
-        images = self._current_file['raw_image']
-        exposures = np.asarray(self._current_file['raw_exps'])
-        shift, theta, phi = self._current_file['raw_pos']
+        images = self._current_file['images']
+        exposures = np.array([10, 100, 1000, 10000])
+        shift, theta, phi = self._current_file['pos']
 
         self._n_exposures = exposures.size
 
@@ -174,11 +168,11 @@ class Viewer():
                 self._spotted = False
                 plt.draw()
         elif event.key == ' ':
-            image = self._current_file['raw_image'][self._exposure]
+            image = self._current_file['images'][self._exposure]
             spot = search_spot(image, ax=self._image_ax, gamma=1)
             y0, x0 = spot.centroid
-            shift, theta, phi = self._current_file['raw_pos']
-            exposures = self._current_file['raw_exps']
+            shift, theta, phi = self._current_file['pos']
+            exposures = np.array([10, 100, 1000, 10000])
             if exposures.size == 1:
                 exposure = int(exposures)
             else:
@@ -192,7 +186,7 @@ class Viewer():
             self._spotted = True
             plt.draw()
         elif event.key == 'd':
-            image = self._current_file['raw_image'][self._exposure]
+            image = self._current_file['images'][self._exposure]
             search_difraction(image, ax=self._image_ax, length=10)
             plt.draw()
 
