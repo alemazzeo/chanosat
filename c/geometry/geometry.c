@@ -10,11 +10,12 @@ int plane_collision(Geometry ray, Geometry plane, Geometry* collision){
     }
 
     if (fabs(n) < 1e-6){
+	printf("Ojo");
 	return -1;
     }
 
     for (int i=0; i<3; i++){
-	collision->point[i] = ray.normal[i] * s + ray.point[i];
+	collision->point[i] = ray.normal[i] * s / n + ray.point[i];
 	collision->normal[i] = ray.normal[i];
     }
 
@@ -23,14 +24,17 @@ int plane_collision(Geometry ray, Geometry plane, Geometry* collision){
 
 int transform_chano(Chano chano, Geometry* ray){
 
-    ray->point[0] = chano.x + chano.shift * cos(chano.theta);
-    ray->point[1] = chano.y + chano.shift * sin(chano.theta);
+    double r;
+    r = chano.shift + chano.offset_shift;
+
+    ray->point[0] = chano.x + r * cos(chano.theta + chano.offset_theta);
+    ray->point[1] = chano.y + r * sin(chano.theta + chano.offset_theta);
     ray->point[2] = chano.z;
     
-    ray->normal[0] = sin(chano.phi) * cos(chano.theta);
-    ray->normal[1] = sin(chano.phi) * sin(chano.theta);
-    ray->normal[2] = cos(chano.phi);
-
+    ray->normal[0] = sin(chano.phi*2) * cos(chano.theta);
+    ray->normal[1] = sin(chano.phi*2) * sin(chano.theta);
+    ray->normal[2] = cos(chano.phi*2);
+    
     return 0;
 }
 
@@ -61,7 +65,7 @@ int reflection(Geometry ray, Geometry plane, Geometry* reflection){
 int transform_system(Chano chano, Geometry lens, Polar* new_coords){
     
     Geometry ray, collision;
-    double x, y;
+    double x, y, nx, ny, nz, n_xy, gamma;
     int r;
     
     double r_point[3], r_normal[3];
@@ -77,14 +81,35 @@ int transform_system(Chano chano, Geometry lens, Polar* new_coords){
     if (r != 0)
 	return -1;
 
+    /*printf("\nChano:\n x:%-+9.3f,  y:%-+9.3f,  z:%-+9.3f", r_point[0], r_point[1], r_point[2]);
+
+    printf("\nnx:%-+9.3f, ny:%-+9.3f, nz:%-+9.3f", r_normal[0], r_normal[1], r_normal[2]);
+    
+    printf("\nCollision:\n x:%-+9.3f,  y:%-+9.3f,  z:%-+9.3f", c_point[0], c_point[1], c_point[2]);
+    printf("\nnx:%-+9.3f, ny:%-+9.3f, nz:%-+9.3f", c_normal[0], c_normal[1], c_normal[2]);
+    
+    printf("\nLens parameters:\n x:%-+9.3f,  y:%-+9.3f,  z:%-+9.3f", lens.point[0], lens.point[1], lens.point[2]);
+    printf("\nnx:%-+9.3f, ny:%-+9.3f, nz:%-+9.3f", lens.normal[0], lens.normal[1], lens.normal[2]);
+    */
+    
     x = collision.point[0] - lens.point[0];
     y = collision.point[1] - lens.point[1];
     
     new_coords->rho = sqrt(x*x + y*y);
     new_coords->theta = atan2(y, x);
 
-    new_coords->alpha = chano.phi * cos(chano.theta - new_coords->theta);
-    new_coords->beta = chano.phi * sin(chano.theta - new_coords->theta);
+    // printf("\nx:%-+9.3f, y:%-+9.3f, rho:%-+9.3f", x, y, new_coords->rho);
+
+    nx = collision.normal[0];
+    ny = collision.normal[1];
+    nz = collision.normal[2];
+
+    n_xy = sqrt(nx * nx + ny * ny);
+
+    gamma = atan2(ny, nx) - new_coords->theta;
+    
+    new_coords->alpha = atan2(n_xy * cos(gamma), nz);
+    new_coords->beta = atan2(n_xy * sin(gamma), nz);
     
     return 0;
 }
@@ -108,7 +133,7 @@ int explore(char * file, Sweep sweep, Chano chano, Geometry lens,
 	    "rho", "theta", "alpha", "beta",
 	    "theta", "phi", "shift");
 
-    printf("Done.\n");
+    printf("Done.\nRunning...");
     
     for (int i=0; i<sweep.len_theta; i++){
 	for (int j=0; j<sweep.len_phi; j++){
@@ -130,7 +155,11 @@ int explore(char * file, Sweep sweep, Chano chano, Geometry lens,
 	}
     }
 
+    printf("Done.\nClosing file...");
+    
     fclose(fp);
 
+    printf("Done.\n");
+    
     return 0;
 }

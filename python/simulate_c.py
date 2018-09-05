@@ -27,12 +27,6 @@ class Geometry(C.Structure):
         self.normal = self._normal.ctypes.data_as(pd)
 
 
-class Lens(Geometry):
-    def __init__(self, point=[0, 0, 0], normal=[0, 0, 1], radius=21):
-        self.radius = C.c_double(radius)
-        super().__init__(point, normal)
-
-
 class Sweep(C.Structure):
     _fields_ = [('theta', pd),
                 ('len_theta', C.c_int),
@@ -76,21 +70,34 @@ class Chano(C.Structure):
                 ('phi', C.c_double),
                 ('x', C.c_double),
                 ('y', C.c_double),
-                ('z', C.c_double)]
+                ('z', C.c_double),
+                ('offset_shift', C.c_double),
+                ('offset_theta', C.c_double)]
 
-    def __init__(self, x=0, y=0, z=0):
+    def __init__(self, x=0, y=0, z=0, offset_shift=10.0, offset_theta=45):
         self.x = C.c_double(x)
         self.y = C.c_double(y)
         self.z = C.c_double(z)
         self.shift = C.c_double(0.0)
         self.theta = C.c_double(0.0)
         self.phi = C.c_double(0.0)
+        self.offset_shift = C.c_double(offset_shift)
+        self.offset_theta = C.c_double(offset_theta * np.pi / 180)
 
 
-def simulate(theta_range, phi_range, shift_range, x, y, z, r, dr=None):
+def simulate(theta_range, phi_range, shift_range, x, y, z, r, dr=None,
+             offset_shift=10.0, offset_theta=45):
 
-    sweep = Sweep(theta=theta_range, shift=shift_range, phi=[-30, 60])
-    chano = Chano(x=-x, y=-y, z=0)
+    sweep = Sweep(theta=theta_range,
+                  shift=shift_range,
+                  phi=phi_range)
+
+    x0 = offset_shift * np.cos(offset_theta * np.pi / 180)
+    y0 = offset_shift * np.sin(offset_theta * np.pi / 180)
+
+    chano = Chano(x=-(x + x0), y=-(y + y0), z=0,
+                  offset_shift=offset_shift,
+                  offset_theta=offset_theta)
     lens = Geometry(point=[0, 0, z], normal=[0, 0, 1])
 
     filename = C.c_char_p(b"calibrate.txt")
@@ -102,31 +109,20 @@ def simulate(theta_range, phi_range, shift_range, x, y, z, r, dr=None):
         CLIB.explore(filename, sweep, chano, lens,
                      C.c_double(r - dr), C.c_double(r + dr))
 
-    result = np.loadtxt('calibrate.txt', delimiter=',', unpack=True)
-    rho, theta, alpha, beta, c_theta, c_phi, c_shift = result
-    np.savez('sim_calibrate.npz',
-             rho=rho, theta=theta, alpha=alpha, beta=beta,
-             c_theta=c_theta, c_phi=c_phi, c_shift=c_shift)
-    return result
-
 
 if __name__ == "__main__":
 
     # Sweep for chano
-    phi_range = arange(-50, 70, 2)
-    shift_range = arange(0, 28, 1)
-    theta_range = arange(0, 90, 5)
+    phi_range = arange(-35, 20, 0.5)
+    shift_range = arange(0, 36, 0.1)
+    theta_range = arange(-65, 65, 1)
 
     # Lens coords
-    z = 20
+    z = 24
     r = 21
-    x = 21
-    y = 21
+    x = 10
+    y = 0
 
-    result = simulate(theta_range, phi_range, shift_range,
-                      x=r, y=r, z=20, r=r, dr=3)
-
-    rho, theta, alpha, beta, c_theta, c_phi, c_shift = result
-
-    plt.ion()
-    plt.polar(theta, rho, 'go')
+    simulate(theta_range, phi_range, shift_range,
+             x=x, y=y, z=z, r=r,
+             offset_shift=10, offset_theta=45)

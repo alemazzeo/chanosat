@@ -25,6 +25,9 @@ struct _polar {
 struct _chano {
     double shift, theta, phi;
     double x, y, z;
+    double offset_shift;
+    double offset_theta;
+    
 };
 
 typedef struct _geometry Geometry;
